@@ -3,10 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Scroll Banner Overlay</title>
+  <title>Slide-In Scrollable</title>
   <style>
     body {
       margin: 0;
+      overflow-x: hidden; /* prevent horizontal scrollbar */
+    }
+
+    /* Content image */
+    .content img {
+      display: block;
+      width: 1920px;
+      height: auto;
+    }
+
+    /* Hotspot on large-content.jpg */
+    .hotspot {
+      position: absolute;
+      top: 32px;   /* adjust Y position */
+      left: 200px;  /* adjust X position */
+      width: 48px;
+      height: 48px;
+      cursor: pointer;
+      /*  background: rgba(255,0,0,0.2); /* test overlay, remove later */
+      z-index: 2000; /* 👈 ensures it's above the banner */
+    }
+
+    /* Slide-in image (scrolls with page) */
+    .slide-in {
+      position: absolute; /* scrolls with content */
+      top: 0px;         /* match hotspot vertical position */
+      left: -496px;       /* hidden off-screen to left */
+      width: 496px;
+      height: auto;
+      transition: left 0.4s ease;
+      z-index: 1000;
+    }
+
+    .slide-in.active {
+      left: 0; /* slides into view */
+    }
+
+    /* Hotspot inside the side image */
+    .slideout-hotspot {
+      position: absolute;
+      top: 32px;
+      right: 60px;
+      width: 48px;
+      height: 48px;
+      /* background: rgba(0,0,255,0.2); /* test overlay */
+      cursor: pointer;
     }
 
     /* Banner overlay */
@@ -34,27 +80,29 @@
       opacity: 1;
     }
 
-    /* Large scrolling image */
-    .content img {
-      display: block;
-      width: 1920px;
-      height: auto;
-    }
   </style>
 </head>
 <body>
   <!-- Large scrolling image -->
   <div class="content">
     <img src="homepage.png" alt="Full Page Content">
+    <!-- Hotspot overlay on big image -->
+    <div class="hotspot" id="hotspot"></div>
   </div>
 
-  <!-- Banner overlay -->
+  <!-- Slide-in image overlay -->
+  <div class="slide-in" id="slideImage">
+    <img src="burger.png" alt="Side Image" style="width:100%;height:auto;">
+    <div class="slideout-hotspot" id="slideoutHotspot"></div>
+  </div>
+
+    <!-- Banner overlay -->
   <div class="banner-wrapper">
     <img id="banner1" class="banner-image active" src="banner1.png" alt="Banner 1">
     <img id="banner2" class="banner-image" src="banner2.png" alt="Banner 2">
   </div>
 
-  <script>
+<script>
     const banner1 = document.getElementById("banner1");
     const banner2 = document.getElementById("banner2");
     let swapped = false; // track if swap has happened
@@ -65,6 +113,21 @@
         banner2.classList.add("active");
         swapped = true; // lock the swap
       }
+    });
+  </script>
+  <script>
+    const hotspot = document.getElementById("hotspot");
+    const slideImage = document.getElementById("slideImage");
+    const slideoutHotspot = document.getElementById("slideoutHotspot");
+
+    // Show side image when clicking hotspot
+    hotspot.addEventListener("click", () => {
+      slideImage.classList.add("active");
+    });
+
+    // Hide side image when clicking its hotspot
+    slideoutHotspot.addEventListener("click", () => {
+      slideImage.classList.remove("active");
     });
   </script>
 </body>

@@ -1,134 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Slide-In Scrollable</title>
-  <style>
-    body {
-      margin: 0;
-      overflow-x: hidden; /* prevent horizontal scrollbar */
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scrolling Banner Demo</title>
+<style>
+  body {
+    margin: 0;
+    height: 3500px; /* For scrolling demo */
+    background: url('homepage.png') no-repeat center top;
+    background-size: cover;
+  }
 
-    /* Content image */
-    .content img {
-      display: block;
-      width: 1920px;
-      height: auto;
-    }
+  /* Banner base styles */
+  .banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    pointer-events: none;
+  }
 
-    /* Hotspot on large-content.jpg */
-    .hotspot {
-      position: absolute;
-      top: 32px;   /* adjust Y position */
-      left: 200px;  /* adjust X position */
-      width: 48px;
-      height: 48px;
-      cursor: pointer;
-      /*  background: rgba(255,0,0,0.2); /* test overlay, remove later */
-      z-index: 2000; /* 👈 ensures it's above the banner */
-    }
+  #banner1 {
+    z-index: 10;
+  }
 
-    /* Slide-in image (scrolls with page) */
-    .slide-in {
-      position: absolute; /* scrolls with content */
-      top: 0px;         /* match hotspot vertical position */
-      left: -496px;       /* hidden off-screen to left */
-      width: 496px;
-      height: auto;
-      transition: left 0.4s ease;
-      z-index: 1000;
-    }
+  #banner3 {
+    z-index: 20;
+    opacity: 0;
+    transform: translateY(-100%);
+    transition: opacity 0.25s ease, transform 0.4s ease;
+  }
 
-    .slide-in.active {
-      left: 0; /* slides into view */
-    }
+  /* Fade in (appear) */
+  #banner3.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
 
-    /* Hotspot inside the side image */
-    .slideout-hotspot {
-      position: absolute;
-      top: 32px;
-      right: 60px;
-      width: 48px;
-      height: 48px;
-      /* background: rgba(0,0,255,0.2); /* test overlay */
-      cursor: pointer;
-    }
+  /* Slide up (disappear while scrolling down) */
+  #banner3.hide {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
 
-    /* Banner overlay */
-    .banner-wrapper {
-      position: absolute; /* sits on top of large image */
-      top: 0;
-      left: 0;
-      width: 1920px;
-      height: 112px;
-      overflow: hidden;
-    }
-
-    .banner-image {
-      width: 100%;
-      height: 112px;
-      object-fit: cover;
-      position: absolute;
-      top: 0;
-      left: 0;
-      opacity: 0;
-      transition: opacity 0.4s ease;
-    }
-
-    .banner-image.active {
-      opacity: 1;
-    }
-
-  </style>
+  /* Crossfade out (when entering ≤200px) */
+  #banner3.fadeout {
+    opacity: 0;
+    transform: translateY(0);
+  }
+</style>
 </head>
 <body>
-  <!-- Large scrolling image -->
-  <div class="content">
-    <img src="homepage.png" alt="Full Page Content">
-    <!-- Hotspot overlay on big image -->
-    <div class="hotspot" id="hotspot"></div>
-  </div>
 
-  <!-- Slide-in image overlay -->
-  <div class="slide-in" id="slideImage">
-    <img src="burger.png" alt="Side Image" style="width:100%;height:auto;">
-    <div class="slideout-hotspot" id="slideoutHotspot"></div>
-  </div>
-
-    <!-- Banner overlay -->
-  <div class="banner-wrapper">
-    <img id="banner1" class="banner-image active" src="banner1.png" alt="Banner 1">
-    <img id="banner2" class="banner-image" src="banner2.png" alt="Banner 2">
-  </div>
+<img id="banner1" class="banner" src="banner1.png" alt="Banner 1">
+<img id="banner3" class="banner" src="banner3.png" alt="Banner 3">
 
 <script>
-    const banner1 = document.getElementById("banner1");
-    const banner2 = document.getElementById("banner2");
-    let swapped = false; // track if swap has happened
+let lastScroll = window.scrollY;
+const banner1 = document.getElementById('banner1');
+const banner3 = document.getElementById('banner3');
 
-    window.addEventListener("scroll", () => {
-      if (!swapped && window.scrollY > 0) {
-        banner1.classList.remove("active");
-        banner2.classList.add("active");
-        swapped = true; // lock the swap
-      }
-    });
-  </script>
-  <script>
-    const hotspot = document.getElementById("hotspot");
-    const slideImage = document.getElementById("slideImage");
-    const slideoutHotspot = document.getElementById("slideoutHotspot");
+window.addEventListener('scroll', () => {
+  const currentScroll = window.scrollY;
+  const scrollingDown = currentScroll > lastScroll;
 
-    // Show side image when clicking hotspot
-    hotspot.addEventListener("click", () => {
-      slideImage.classList.add("active");
-    });
+  // --- Banner1 fixed for first 200px ---
+  if (currentScroll <= 200) {
+    banner1.style.position = 'fixed';
+    banner1.style.top = '0';
+  } else {
+    banner1.style.position = 'absolute';
+    banner1.style.top = '200px';
+  }
 
-    // Hide side image when clicking its hotspot
-    slideoutHotspot.addEventListener("click", () => {
-      slideImage.classList.remove("active");
-    });
-  </script>
+  // --- Banner3 behavior ---
+  if (!scrollingDown && currentScroll > 200) {
+    // Scrolling up beyond 200px → fade in
+    banner3.classList.add('show');
+    banner3.classList.remove('hide', 'fadeout');
+  } else if (scrollingDown && currentScroll > 200) {
+    // Scrolling down past 200px → slide up
+    banner3.classList.remove('show', 'fadeout');
+    banner3.classList.add('hide');
+  } else if (!scrollingDown && currentScroll <= 200) {
+    // Scrolling up into top 200px → crossfade out
+    banner3.classList.remove('show', 'hide');
+    banner3.classList.add('fadeout');
+  }
+
+  lastScroll = currentScroll;
+});
+</script>
+
 </body>
 </html>
